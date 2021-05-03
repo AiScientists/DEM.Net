@@ -19,13 +19,14 @@ namespace DEM.Net.Core.EarthData
     {
         private readonly ILogger<NasaGranuleFileService> logger;
         private ConcurrentDictionary<string, List<DEMFileSource>> _cacheByDemName;
-        private static HttpClient _httpClient = new HttpClient();
+        private readonly IHttpClientFactory httpClientFactory;
         private readonly EarthdataLoginConnector rasterDownloader;
 
-        public NasaGranuleFileService(ILogger<NasaGranuleFileService> logger, EarthdataLoginConnector rasterDownloader)
+        public NasaGranuleFileService(ILogger<NasaGranuleFileService> logger, EarthdataLoginConnector rasterDownloader, IHttpClientFactory httpClientFactory)
         {
             this.logger = logger;
             this.rasterDownloader = rasterDownloader;
+            this.httpClientFactory = httpClientFactory;
         }
         public void Setup(DEMDataSet dataSet, string dataSetLocalDir)
         {
@@ -59,12 +60,14 @@ namespace DEM.Net.Core.EarthData
                     int pageIndex = 0;
                     int PAGE_SIZE = 2000;
                     links = new List<NasaDemFile>(30000);
+                    var httpClient = httpClientFactory.CreateClient();
                     do
                     {
                         pageIndex++;
                         logger.LogInformation($"Getting entries on page {pageIndex} with page size of {PAGE_SIZE} ({(pageIndex - 1) * PAGE_SIZE} entries so far)...");
                         var url = dataSource.GetUrl(PAGE_SIZE, pageIndex);
-                        var json = _httpClient.GetStringAsync(url).GetAwaiter().GetResult();
+                        
+                        var json = httpClient.GetStringAsync(url).GetAwaiter().GetResult();
                         hasData = !string.IsNullOrWhiteSpace(json);
                         if (hasData)
                         {
@@ -73,7 +76,7 @@ namespace DEM.Net.Core.EarthData
                             if (hasData)
                             {
                                 // Only retrieve bbox and dem file link (zip file)
-                                links.AddRange(result.Feed.Entry.Select(GetNasaDemFile));
+                                links.AddRange(result.Feed.Entry.Select(GetNasaDemFile).Where(file => file != null));
                             }
                         }
                     }
@@ -90,7 +93,7 @@ namespace DEM.Net.Core.EarthData
                 {
                     _cacheByDemName = new ConcurrentDictionary<string, List<DEMFileSource>>();
                 }
-                if (_cacheByDemName.ContainsKey(indexFileName) == false)
+                if (_cacheByDemName.ContainsKey(dataSet.Name) == false)
                 {
                     _cacheByDemName[dataSet.Name] = this.GetSources(dataSet, indexFileName);
                 }
@@ -108,18 +111,27 @@ namespace DEM.Net.Core.EarthData
 
         private NasaDemFile GetNasaDemFile(Entry entry)
         {
-            if (entry == null)
-                throw new ArgumentNullException(nameof(entry), "Entry is mandatory.");
-            if (entry.Boxes == null || entry.Boxes.Count == 0)
-                throw new ArgumentNullException(nameof(entry.Boxes), "Boxes should contain at least an element.");
-            if (entry.Links == null || entry.Links.Count == 0)
-                throw new ArgumentNullException(nameof(entry.Links), "Links should contain at least an element.");
+            try
+            {
+                if (entry == null)
+                    throw new ArgumentNullException(nameof(entry), "Entry is mandatory.");
+                if (entry.Boxes == null || entry.Boxes.Count == 0)
+                    throw new ArgumentNullException(nameof(entry.Boxes), "Boxes should contain at least an element.");
+                if (entry.Links == null || entry.Links.Count == 0)
+                    throw new ArgumentNullException(nameof(entry.Links), "Links should contain at least an element.");
 
-            var link = entry.Links.FirstOrDefault(l => l.Type == TypeEnum.ApplicationZip);
-            if (link == null)
-                throw new ArgumentNullException(nameof(link), "ApplicationZip Link is mandatory.");
+                var link = entry.Links.FirstOrDefault(l => l.Type == TypeEnum.ApplicationZip);
+                if (link == null)
+                    throw new ArgumentNullException(nameof(link), "ApplicationZip Link is mandatory.");
 
-            return new NasaDemFile(entry.ProducerGranuleId, entry.Boxes.First(), link.Href.AbsoluteUri);
+                return new NasaDemFile(entry.ProducerGranuleId, entry.Boxes.First(), link.Href.AbsoluteUri);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning("Error parsing Nasa entry. File will be ignored: " + ex.Message);
+                return null;
+            }
+
         }
 
         private List<DEMFileSource> GetSources(DEMDataSet dataSet, string indexFileName)
@@ -140,7 +152,7 @@ namespace DEM.Net.Core.EarthData
                 BBox = GetBBox(file.Box),
                 SourceFileName = file.GranuleId,
                 SourceFileNameAbsolute = file.ZipFileLink,
-                LocalFileName = Path.Combine(dataSetLocalDir, "Granules", this.FileNameFromGranuleId(file.GranuleId))
+                LocalFileName = Path.Combine(dataSetLocalDir, "Granules", this.FileNameFromGranuleId(file.GranuleId, dataSet))
             }).ToList();
         }
 
@@ -188,13 +200,13 @@ namespace DEM.Net.Core.EarthData
                 // - Keep only _dem.tif file
                 // - rename it as .tif
                 // - suppress other files
-                
+
                 using (var archive = ZipFile.Open(zipFileName, ZipArchiveMode.Read))
                 {
-                    var geoTiffFile = archive.Entries.FirstOrDefault(e => e.Name.ToLower().EndsWith("_dem.tif"));
+                    var geoTiffFile = archive.Entries.FirstOrDefault(e => e.Name.ToLower().EndsWith(dataset.FileFormat.FileExtension));
                     if (geoTiffFile == null)
                     {
-                        this.logger.LogError($"Cannot find geoTiff file into archive {report.LocalName}");
+                        this.logger.LogError($"Cannot find any {dataset.FileFormat.FileExtension} file into archive {report.LocalName}");
                     }
                     else
                     {
@@ -212,9 +224,9 @@ namespace DEM.Net.Core.EarthData
 
         }
 
-        private string FileNameFromGranuleId(string granuleId)
+        private string FileNameFromGranuleId(string granuleId, DEMDataSet dataSet)
         {
-            var fileName = string.Concat(Path.GetFileNameWithoutExtension(granuleId), "_dem.tif");
+            var fileName = string.Concat(Path.GetFileNameWithoutExtension(granuleId), dataSet.FileFormat.FileExtension);
             return fileName;
         }
     }

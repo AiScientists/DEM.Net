@@ -59,7 +59,13 @@ namespace DEM.Net.Core
             this.Version = version;
         }
 
-
+        /// <summary>
+        /// Marks this metadata as virtual.
+        /// Used for GetHeightMap when bbox does not cover DEM tiles.
+        /// Virtual metadata data is then used to generate missing heightmaps
+        /// </summary>
+        [JsonIgnore]
+        public bool VirtualMetadata { get; set; }
         public string Version { get; set; }
         public string Filename { get; set; }
         public int Height { get; set; }
@@ -156,14 +162,22 @@ namespace DEM.Net.Core
             {
                 if (_boundingBox == null)
                 {
-                    double xmin = Math.Min(DataStartLon, DataEndLon);
-                    double xmax = Math.Max(DataStartLon, DataEndLon);
-                    double ymin = Math.Min(DataStartLat, DataEndLat);
-                    double ymax = Math.Max(DataStartLat, DataEndLat);
-                    _boundingBox = new BoundingBox(xmin, xmax, ymin, ymax);
+                    _boundingBox = new BoundingBox(
+                                Math.Min(DataStartLon, DataEndLon),
+                                Math.Max(DataStartLon, DataEndLon),
+                                Math.Min(DataStartLat, DataEndLat),
+                                Math.Max(DataStartLat, DataEndLat));
                 }
                 return _boundingBox;
             }
+        }
+
+        public FileMetadata Clone()
+        {
+            FileMetadata clone = (FileMetadata)this.MemberwiseClone();
+            clone.Filename = Guid.NewGuid().ToString();
+            clone._boundingBox = null;
+            return clone;
         }
 
     }

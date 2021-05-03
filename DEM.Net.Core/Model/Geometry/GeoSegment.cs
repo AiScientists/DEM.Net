@@ -1,8 +1,7 @@
-﻿//
-// MeshTransform.cs
+﻿// GeoSegment.cs
 //
 // Author:
-//       Xavier Fischer
+//       Xavier Fischer 
 //
 // Copyright (c) 2019 
 //
@@ -27,38 +26,24 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DEM.Net.glTF
+namespace DEM.Net.Core
 {
-    public static class MeshTransform
+    public struct GeoSegment
     {
-        //public static void RotateX(this MeshPrimitive mesh, float angle)
-        //{
-        //    var matrix = Matrix4x4.CreateRotationX(angle);
-        //    Transform(mesh, matrix);
-        //}
-        //public static void RotateY(this MeshPrimitive mesh, float angle)
-        //{
-        //    var matrix = Matrix4x4.CreateRotationY(angle);
-        //    Transform(mesh, matrix);
-        //}
-        //public static void RotateZ(this MeshPrimitive mesh, float angle)
-        //{
-        //    var matrix = Matrix4x4.CreateRotationZ(angle);
-        //    Transform(mesh, matrix);
-        //}
-        //public static void Translate(this MeshPrimitive mesh, float x,float y, float z)
-        //{
-        //    var matrix = Matrix4x4.CreateTranslation(x,y,z);
-        //    Transform(mesh, matrix);
-        //}
-        //public static void Transform(this MeshPrimitive mesh, Matrix4x4 matrix)
-        //{
-        //    mesh.Positions = mesh.Positions.Select(v => Vector3.Transform(v, matrix));
-        //    mesh.Normals = mesh.Normals.Select(v => Vector3.Transform(v, matrix));
-        //}
+        public GeoPoint Start;
+        public GeoPoint End;
+        public GeoSegment(GeoPoint start, GeoPoint end)
+        {
+            Start = start;
+            End = end;
+        }
+
+        public override string ToString()
+        {
+            return $"Segment from {Start} to {End}.";
+        }
     }
 }

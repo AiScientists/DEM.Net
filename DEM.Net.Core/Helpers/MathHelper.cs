@@ -129,7 +129,7 @@ namespace DEM.Net.Core
         /// </summary>
         /// <param name="angleInDegrees"></param>
         /// <returns></returns>
-        internal static double ToRadians(double angleInDegrees)
+        public static double ToRadians(double angleInDegrees)
         {
             return angleInDegrees * Math.PI / 180d;
         }
@@ -138,7 +138,7 @@ namespace DEM.Net.Core
         /// </summary>
         /// <param name="angleinRadians"></param>
         /// <returns></returns>
-        internal static double ToDegrees(double angleinRadians)
+        public static double ToDegrees(double angleinRadians)
         {
             return angleinRadians * 180d / Math.PI;
         }
@@ -150,6 +150,18 @@ namespace DEM.Net.Core
                                     : value.CompareTo(max) == 1 ? max
                                     : value;
 
+        }
+
+        public static void Swap<T>(ref T a, ref T b)
+        {
+            T temp = a;
+            a = b;
+            b = temp;
+        }
+
+        public static IEnumerable<double> MetersToKm(this IEnumerable<double> meters)
+        {
+            return meters.Select(d => d * 0.001d);
         }
 
 

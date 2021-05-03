@@ -1,9 +1,9 @@
-﻿// SingleFileDataSource.cs
+﻿// TransformExtensions.cs
 //
 // Author:
 //       Xavier Fischer
 //
-// Copyright (c) 2019 Xavier Fischer
+// Copyright (c) 2020 Xavier Fischer
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -23,19 +23,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
-namespace DEM.Net.Core.Datasets
+using System.Collections.Generic;
+
+namespace DEM.Net.Core
 {
-    public class SingleFileDataSource : IDEMDataSource
+    public static class TransformExtensions
     {
-		public string IndexFilePath { get; }
-
-        public bool IsGlobalFile { get; } = true;
-
-        public DEMDataSourceType DataSourceType => DEMDataSourceType.LocalFile;
-
-        public SingleFileDataSource(string fullFileName)
+        public static Func<IEnumerable<GeoPoint>, IEnumerable<GeoPoint>> PostTransform(this Func<IEnumerable<GeoPoint>, IEnumerable<GeoPoint>> func, Func<IEnumerable<GeoPoint>, IEnumerable<GeoPoint>> postTransform)
         {
-            this.IndexFilePath = fullFileName;
+            return pts => postTransform(func(pts));
         }
     }
 }

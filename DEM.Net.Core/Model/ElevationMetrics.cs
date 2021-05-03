@@ -27,14 +27,16 @@ using System.Globalization;
 
 namespace DEM.Net.Core
 {
-	public class ElevationMetrics
-	{
-		public double MinElevation { get; internal set; }
-		public double MaxElevation { get; internal set; }
-		public double Distance { get; internal set; }
-		public int NumPoints { get; internal set; }
-		public double Climb { get; internal set; }
-		public double Descent { get; internal set; }
+    public class ElevationMetrics
+    {
+        public double MinElevation { get; internal set; }
+        public double MaxElevation { get; internal set; }
+        public double Distance { get; internal set; }
+        public int NumPoints { get; internal set; }
+        public double Climb { get; internal set; }
+        public double Descent { get; internal set; }
+        public bool HasVoids { get; internal set; }
+        public int NumVoidPoints { get; internal set; }
 
         public override string ToString()
         {

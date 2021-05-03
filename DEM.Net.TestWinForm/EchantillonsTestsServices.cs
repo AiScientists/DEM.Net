@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DEM.Net.Core;
+using DEM.Net.Core.Datasets;
 
 namespace DEM.Net.TestWinForm
 {
@@ -15,8 +16,19 @@ namespace DEM.Net.TestWinForm
             List<BeanPoint_internal> v_pointsToTest = new List<BeanPoint_internal>();
             try
             {
-                IRasterService v_rasterService = new RasterService(null);
-                IElevationService v_elevationService = new ElevationService(v_rasterService, null);
+                // fix issue #86 to work with opentopography files without proper DI injection
+                RasterIndexServiceResolver rasterIndexServiceResolver = dataSourceType =>
+                {
+                    switch (dataSourceType)
+                    {
+                        case DEMDataSourceType.GDALVrt:
+                            return new GDALVRTFileService(null, null);
+                        default:
+                            throw new KeyNotFoundException(); // or maybe return null, up to you
+                    }
+                };
+                RasterService v_rasterService = new RasterService(rasterIndexServiceResolver);
+                ElevationService v_elevationService = new ElevationService(v_rasterService, null);
                 BoundingBox v_bbox = GeometryService.GetBoundingBox(p_bbox);
                 v_elevationService.DownloadMissingFiles(dataset, v_bbox);
                 //

@@ -1,6 +1,7 @@
 ﻿using DEM.Net.Core.Datasets;
 using DEM.Net.Core.EarthData;
 using DEM.Net.Core.Imagery;
+using DEM.Net.Core.Services.Imagery;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -11,13 +12,15 @@ namespace DEM.Net.Core
 {
     public delegate IDEMDataSetIndex RasterIndexServiceResolver(DEMDataSourceType dataSourceType);
 
-    public static class IServiceCollectionExtension
+    public static class ServiceCollectionExtension
     {
         public static IServiceCollection AddDemNetCore(this IServiceCollection services)
         {
             services.AddMemoryCache();
+            services.AddHttpClient();
 
             services.AddSingleton<GDALVRTFileService>();
+            services.AddSingleton<LocalFileSystemIndex>();
             services.AddSingleton<NasaGranuleFileService>();
             services.AddSingleton<EarthdataLoginConnector>();
 
@@ -26,10 +29,11 @@ namespace DEM.Net.Core
                 switch (dataSourceType)
                 {
                     case Datasets.DEMDataSourceType.GDALVrt:
-                    case Datasets.DEMDataSourceType.LocalFile:
                         return serviceProvider.GetService<GDALVRTFileService>();
                     case Datasets.DEMDataSourceType.NasaEarthData:
                         return serviceProvider.GetService<NasaGranuleFileService>();
+                    case Datasets.DEMDataSourceType.LocalFileSystem:
+                        return serviceProvider.GetService<LocalFileSystemIndex>();
                     default:
                         throw new KeyNotFoundException(); // or maybe return null, up to you
                 }
@@ -37,10 +41,13 @@ namespace DEM.Net.Core
 
             services
                     .AddSingleton<IDEMDataSetIndex,GDALVRTFileService>()
-                    .AddSingleton<IRasterService, RasterService>()
-                    .AddTransient<IElevationService, ElevationService>()
-                    .AddTransient<IMeshService, MeshService>()
-                    .AddSingleton<IImageryService, ImageryService>();
+                    .AddSingleton<RasterService>()
+                    .AddTransient<ElevationService>()
+                    .AddTransient<MeshService>()
+                    .AddTransient<AdornmentsService>()
+                    .AddTransient<ImageryCache>()
+                    .AddSingleton<ImageryService>();
+
 
             return services;
         }

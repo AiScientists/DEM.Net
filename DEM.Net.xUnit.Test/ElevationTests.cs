@@ -9,11 +9,11 @@ namespace DEM.Net.Test
 {
     public class ElevationTests : IClassFixture<DemNetFixture>
     {
-        IElevationService _elevationService;
+        ElevationService _elevationService;
 
         public ElevationTests(DemNetFixture fixture)
         {
-            _elevationService = fixture.ServiceProvider.GetService<IElevationService>();
+            _elevationService = fixture.ServiceProvider.GetService<ElevationService>();
         }
 
         [Fact(DisplayName = "Not covered elevation check")]
@@ -65,9 +65,9 @@ namespace DEM.Net.Test
 
             _elevationService.DownloadMissingFiles(dataSet, lat, lon);
 
-            _elevationService.DownloadMissingFiles(dataSet, lat-0.5, lon);
-            _elevationService.DownloadMissingFiles(dataSet, lat - 0.5, lon-0.5);
-            _elevationService.DownloadMissingFiles(dataSet, lat, lon - 0.5); 
+            _elevationService.DownloadMissingFiles(dataSet, lat - 0.5, lon);
+            _elevationService.DownloadMissingFiles(dataSet, lat - 0.5, lon - 0.5);
+            _elevationService.DownloadMissingFiles(dataSet, lat, lon - 0.5);
             _elevationService.DownloadMissingFiles(dataSet, lat + 0.5, lon);
             _elevationService.DownloadMissingFiles(dataSet, lat + 0.5, lon + 0.5);
             _elevationService.DownloadMissingFiles(dataSet, lat, lon + 0.5);
@@ -125,6 +125,23 @@ namespace DEM.Net.Test
             bool covered = _elevationService.IsBoundingBoxCovered(bbox, bboxMetadata.Select(m => m.BoundingBox));
             Assert.Equal(isExpectedCovered, covered);
 
+        }
+
+        [Theory()]
+        [InlineData(nameof(DEMDataSet.SRTM_GL3), 39.97052612249965, 20.178894102573395, 40.16242159876657, 20.476635396480564, 3)]
+        [InlineData(nameof(DEMDataSet.SRTM_GL3), 39.97052612249965, 20.178894102573395, 40.16242159876657, 20.476635396480564, 3)]
+        [InlineData(nameof(DEMDataSet.SRTM_GL3), 39.97052612249965, 20.178894102573395, 40.16242159876657, 20.476635396480564, 3)]
+        public void TestIntervisibility(string dataSetName, double latStart, double lonStart
+            , double latEnd, double lonEnd, double expectedObstacles)
+        {
+            DEMDataSet dataSet = DEMDataSet.RegisteredDatasets.FirstOrDefault(d => d.Name == dataSetName);
+            Assert.NotNull(dataSet);
+
+            IntervisibilityReport report = _elevationService.GetIntervisibilityReport(new GeoPoint(latStart, lonStart), new GeoPoint(latEnd, lonEnd), dataSet);
+
+            Assert.NotNull(report);
+            Assert.Equal(expectedObstacles, report.ObstacleCount, 0);
+            Assert.Equal(expectedObstacles, report.Metrics.Obstacles.Count, 0);
         }
     }
 }

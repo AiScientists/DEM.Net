@@ -1,4 +1,4 @@
-﻿// GeoSegment.cs
+﻿// ElevationMetrics.cs
 //
 // Author:
 //       Xavier Fischer 
@@ -25,30 +25,37 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DEM.Net.Core
 {
-    public class GeoSegment
+    /// <summary>
+    /// Superset of elevation metrics for raycasting (intervisibility)
+    /// All reliefs standing in between are listed in <see cref="Obstacles"/>
+    /// </summary>
+    public class IntervisibilityMetrics : ElevationMetrics
     {
-        public GeoPoint Start { get; set; }
-        public GeoPoint End { get; set; }
+        public bool Intervisible => Obstacles.Count == 0;
 
-        public GeoSegment()
-        {
+        public List<IntervisibilityObstacle> Obstacles { get; set; } = new List<IntervisibilityObstacle>();
 
-        }
-        public GeoSegment(GeoPoint start, GeoPoint end)
+        internal void AddObstacle(IntervisibilityObstacle obstacle)
         {
-            Start = start;
-            End = end;
+            Obstacles.Add(obstacle);
         }
 
-        public override string ToString()
+        public new string ToString()
         {
-            return $"Segment from {Start} to {End}.";
+            if (Intervisible)
+            {
+                return string.Concat("(Intervisible) ", base.ToString());
+            }
+            else
+            {
+                return string.Concat($"{Obstacles.Count} obstacle(s): ",
+                    string.Join(Environment.NewLine + ", ", Obstacles),
+                    Environment.NewLine,
+                    base.ToString());
+            }
         }
     }
 }

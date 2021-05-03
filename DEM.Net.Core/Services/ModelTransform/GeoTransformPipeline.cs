@@ -1,14 +1,13 @@
-﻿//
-// TimeSpanBlock.cs
+﻿// GeoTransformPipeline.cs
 //
 // Author:
-//       Xavier Fischer 2019-9
+//       Xavier Fischer
 //
-// Copyright (c) 2019 Xavier Fischer
+// Copyright (c) 2020 Xavier Fischer
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
+// in the Software without restriction, including without limitation the right
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
@@ -24,28 +23,23 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
-using System.Diagnostics;
-using Microsoft.Extensions.Logging;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace DEM.Net.Core
 {
-    public class TimeSpanBlock : IDisposable
+
+    public class GeoTransformPipeline
     {
-        private  Stopwatch _sw;
-        private  ILogger _logger;
-        private readonly string _operationName;
+        public Func<IEnumerable<GeoPoint>, IEnumerable<GeoPoint>> TransformPoints { get; set; }
+        public Func<HeightMap, HeightMap> TransformHeightMap { get; set; }
 
-        public TimeSpanBlock(string operationName, ILogger logger)
+        public GeoTransformPipeline Clone()
         {
-            _sw = Stopwatch.StartNew();
-            _logger = logger;
-            _operationName = operationName;
+            return this.MemberwiseClone() as GeoTransformPipeline;
         }
 
-        public void Dispose()
-        {
-            _logger.LogInformation($"{_operationName} completed in {_sw.ElapsedMilliseconds} ms");
-            _sw.Stop();
-        }
+        public static GeoTransformPipeline Default => new GeoTransformPipeline() { TransformHeightMap = h => h, TransformPoints = pts => pts };
     }
+
 }

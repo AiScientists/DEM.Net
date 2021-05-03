@@ -2,17 +2,38 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <PackageId>DEM.Net.Core</PackageId>
-    <Version>0.2.0</Version>
+    <Version>0.3.0.0</Version>
     <Authors>Xavier Fischer, Frédéric Aubin</Authors>
     <Copyright>Xavier Fischer, Frédéric Aubin and Contributors</Copyright>
     <Owners>Xavier Fischer</Owners>
     <PackageProjectUrl>https://github.com/dem-net/DEM.Net</PackageProjectUrl>
-    <PackageReleaseNotes>glTF code is now using gltfSharp
-NASA Aster GDEM v3 support
-Various concurrency fixes
-GeoTIFF imprecisions fixed
-Imagery memory cache
-Attributions exported with models</PackageReleaseNotes>
+    <PackageReleaseNotes>
+		b3d755f - Upgraded NTS (removed GeoAPI, and SpatialTrace)
+		46c8546 - Merge branch 'dev'
+		d1cb413 - geopoint check for NaN values
+		424fe4c - fix nodata values for ASC files
+		233d169 - IGN RGE Alti predefined datasets for 5m and 1m
+		b4cfc7a - bingmaps imagery support
+		10dbcc8 - ComputeBoundingBoxTileRangeForTargetResolution
+		e1b3ca3 - point isdefault
+		bbde263 - jpg encoding with better quality
+		51bf603 - various fixes
+		816b918 - tiles download log reports every second
+		da4c894 - fix virtual tiles for geotiff Tiled dataset (SRTM)
+		4777078 - skip bake coords if IList
+		c25ebfd - wip height map image generation
+		699d55f - tilerange width and height
+		2d3d5ac - reprojections to tilesystem for image warping
+		0091fb5 - fixed file size estimation
+		0b2f700 - gebco 2020 and file based datasets with custom location
+		87d6a20 - overload for gen height map image
+		1c989b7 - added MapTiler Satellite
+		0df845f - Merge branch 'dev'
+		d4dab24 - perf fixes
+		58a85e8 - early empty checks
+		442ff5c - opentopography updated SRTM to tif files
+		a2c89bf - switched to NTS
+	</PackageReleaseNotes>
     <PackageTags>DEM, Terrain, Elevation</PackageTags>
     <Title>DEM.Net</Title>
     <Product>DEM.Net</Product>
@@ -20,13 +41,18 @@ Attributions exported with models</PackageReleaseNotes>
     <Summary>Digital Elevation Model library for .Net. Elevation, Heightmaps, STL, glTF</Summary>
     <RepositoryUrl>https://github.com/dem-net/DEM.Net</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageLicenseExpression>
+    </PackageLicenseExpression>
     <PackageIconUrl>https://raw.githubusercontent.com/dem-net/Resources/master/images/DEMnet_512.png</PackageIconUrl>
     <PackageIcon>DEMnet_64.png</PackageIcon>
-    <AssemblyVersion>0.2.0.0</AssemblyVersion>
-    <FileVersion>0.2.0.0</FileVersion>
+    <AssemblyVersion>0.3.0.0</AssemblyVersion>
+    <FileVersion>0.3.0.0</FileVersion>
     <UserSecretsId>a9a5d6e1-3bb8-4dfd-ac6a-861f60dada50</UserSecretsId>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
   <!-- Build package only in Release -->
   <PropertyGroup Condition=" '$(Configuration)' == 'Release'">
@@ -47,6 +73,12 @@ Attributions exported with models</PackageReleaseNotes>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net461'">
     <DefineConstants>NET461;NETFULL</DefineConstants>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
   <!-- Conditionally obtain references for the .NET Framework 4.6.1 target -->
   <ItemGroup Condition=" '$(TargetFramework)' == 'net461' ">
     <Reference Include="System.Net.Http" />
@@ -55,14 +87,19 @@ Attributions exported with models</PackageReleaseNotes>
   </ItemGroup>
   <!-- .NET Standard 2.0 references, compilation flags and build options -->
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.5" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="3.1.5" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.5" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Services\Voronoi\BeanTopologie\**" />
     <EmbeddedResource Remove="Services\Voronoi\BeanTopologie\**" />
     <None Remove="Services\Voronoi\BeanTopologie\**" />
+    <None Include="..\LICENSE.md">
+      <Pack>True</Pack>
+      <PackagePath>
+      </PackagePath>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Services\Voronoi\BeanTopologie\BeanTopologie.cs" />
@@ -76,28 +113,34 @@ Attributions exported with models</PackageReleaseNotes>
     <Compile Include="Services\Voronoi\BeanTopologie\TopologieService.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="BitMiracle.LibTiff.NET" Version="2.4.633" />
-    <PackageReference Include="DotSpatial.Projections" Version="1.9.0" />
-    <PackageReference Include="GeoAPI.CoordinateSystems" Version="1.7.5" />
-    <PackageReference Include="GeoAPI.Core" Version="1.7.5" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Options" Version="2.2.0" />
-    <PackageReference Include="NetTopologySuite" Version="1.15.3" />
-    <PackageReference Include="NetTopologySuite.Diagnostics.Tracing" Version="0.0.3" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="BitMiracle.LibTiff.NET" Version="2.4.639" />
+    <PackageReference Include="DotSpatial.Projections.NetStandard" Version="1.0.0" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="NetTopologySuite" Version="2.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="3.1.5" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="3.1.5" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.5" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.5" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.5" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="3.1.5" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="SDSCore" Version="1.2.0" />
     <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta0007" />
     <PackageReference Include="SixLabors.Shapes" Version="1.0.0-beta0009" />
+    <PackageReference Include="System.Drawing.Common" Version="5.0.0" />
     <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Services\Voronoi\FortuneVoronoi\" />
-    <Folder Include="Model\Enums\" />
+    <Folder Include="Model\IntervisibilityReport\" />
+    <Folder Include="Helpers\System\" />
+    <Folder Include="Services\Geometry\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="DEMnet_64.png" Pack="true" PackagePath="\"/>
+    <None Include="DEMnet_64.png" Pack="true" PackagePath="\" />
   </ItemGroup>
   <ProjectExtensions>
     <MonoDevelop>
