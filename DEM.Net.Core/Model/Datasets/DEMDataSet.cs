@@ -82,24 +82,24 @@ namespace DEM.Net.Core
                         "Rosen, P. A. et al., 2000, Synthetic aperture radar interferometry, Proc. IEEE, 88:333-382." + Environment.NewLine +
                         "https://doi.org/10.5069/G9445JDF")
             });
-            datasets.Add("SRTM_GL1", new DEMDataSet()
-            {
-                Name = nameof(SRTM_GL1),
-                Description = "Shuttle Radar Topography Mission (SRTM GL1) Global 30m",
-                PublicUrl = "http://opentopo.sdsc.edu/raster?opentopoID=OTSRTM.082015.4326.1",
-                DataSource = new VRTDataSource("https://opentopography.s3.sdsc.edu/raster/SRTM_GL1/SRTM_GL1_srtm.vrt"),
-                FileFormat = new DEMFileDefinition("Nasa SRTM HGT", DEMFileType.GEOTIFF, ".tif", DEMFileRegistrationMode.Grid),
-                ResolutionMeters = 30,
-                ResolutionArcSeconds = 1,
-                PointsPerDegree = 3600,
-                Attribution = new Attribution(ATTRIBUTION_SUBJECT, "SRTM_GL1 OpenTopography", "https://opentopography.org/", "http://www2.jpl.nasa.gov/srtm/srtmBibliography.html, https://doi.org/10.5069/G9445JDF")
-            }); ;
+            //datasets.Add("SRTM_GL1", new DEMDataSet()
+            //{
+            //    Name = nameof(SRTM_GL1),
+            //    Description = "Shuttle Radar Topography Mission (SRTM GL1) Global 30m",
+            //    PublicUrl = "http://opentopo.sdsc.edu/raster?opentopoID=OTSRTM.082015.4326.1",
+            //    DataSource = new VRTDataSource("https://opentopography.s3.sdsc.edu/raster/SRTM_GL1/SRTM_GL1_srtm.vrt"),
+            //    FileFormat = new DEMFileDefinition("Nasa SRTM HGT", DEMFileType.GEOTIFF, ".tif", DEMFileRegistrationMode.Grid),
+            //    ResolutionMeters = 30,
+            //    ResolutionArcSeconds = 1,
+            //    PointsPerDegree = 3600,
+            //    Attribution = new Attribution(ATTRIBUTION_SUBJECT, "SRTM_GL1 OpenTopography", "https://opentopography.org/", "http://www2.jpl.nasa.gov/srtm/srtmBibliography.html, https://doi.org/10.5069/G9445JDF")
+            //});
             datasets.Add("AW3D30", new DEMDataSet()
             {
                 Name = nameof(AW3D30),
                 Description = "ALOS World 3D - 30m (nicest but contain void areas)",
                 PublicUrl = "http://opentopo.sdsc.edu/raster?opentopoID=OTALOS.112016.4326.2",
-                DataSource = new VRTDataSource("https://opentopography.s3.sdsc.edu/raster/AW3D30/AW3D30_alos.vrt"),
+                DataSource = new VRTDataSource("https://opentopography.s3.sdsc.edu/raster/AW3D30/AW3D30_global.vrt"),
                 FileFormat = new DEMFileDefinition("GeoTiff file", DEMFileType.GEOTIFF, ".tif", DEMFileRegistrationMode.Cell),
                 ResolutionMeters = 30,
                 ResolutionArcSeconds = 1,
@@ -127,46 +127,59 @@ namespace DEM.Net.Core
             datasets.Add("IGN_5m", new DEMDataSet()
             {
                 Name = nameof(IGN_5m),
-                Description = "IGN RGE Alti 5 meter",
+                Description = "IGN RGE Alti 5 meter (France only)",
                 PublicUrl = "https://ign.fr",
-                DataSource = new LocalFileSystem(localDirectory: Path.Combine("Data", "IGN_5m")),
-                FileFormat = new DEMFileDefinition("Esri Ascii Grid", DEMFileType.ASCIIGrid, ".asc", DEMFileRegistrationMode.Cell),
+                DataSource = new LocalFileSystem(localDirectory: Path.Combine("Data", "IGN_5m_GZip")),
+                FileFormat = new DEMFileDefinition("Esri Ascii Grid (GZipped)", DEMFileType.ASCIIGridGzip, ".asc.gz", DEMFileRegistrationMode.Cell),
                 ResolutionMeters = 5,
                 PointsPerDegree = 21600,
                 NoDataValue = -99999,
                 SRID = 2154,
-                Attribution = new Attribution(ATTRIBUTION_SUBJECT, "IGN", "https://ign.fr"
-                    , "TO BE DEFINED")
+                Attribution = new Attribution(ATTRIBUTION_SUBJECT, "IGN", "https://ign.fr", "https://www.etalab.gouv.fr/licence-ouverte-open-licence")
             });
-            datasets.Add("IGN_1m", new DEMDataSet()
-            {
-                Name = nameof(IGN_1m),
-                Description = "IGN RGE Alti 1 meter",
-                PublicUrl = "https://ign.fr",
-                DataSource = new LocalFileSystem(localDirectory: Path.Combine("Data", "IGN_1m")),
-                FileFormat = new DEMFileDefinition("Esri Ascii Grid", DEMFileType.ASCIIGrid, ".asc", DEMFileRegistrationMode.Cell),
-                ResolutionMeters = 1,
-                PointsPerDegree = 108000,
-                NoDataValue = -99999,
-                SRID = 2154,
-                Attribution = new Attribution(ATTRIBUTION_SUBJECT, "IGN", "https://ign.fr"
-                    , "TO BE DEFINED")
-            });
-            datasets.Add("ASTER_GDEMV3", new DEMDataSet()
-            {
-                Name = nameof(ASTER_GDEMV3),
-                Description = "ASTER Global Digital Elevation Model 1 arc second (30m)",
-                PublicUrl = "https://lpdaac.usgs.gov/products/astgtmv003",
-                DataSource = new NasaGranuleDataSource(indexFilePath: "ASTGTM.003.json", collectionId: "C1575726572-LPDAAC_ECS"),
-                FileFormat = new DEMFileDefinition("GeoTiff file", DEMFileType.GEOTIFF, "_dem.tif", DEMFileRegistrationMode.Grid),
-                ResolutionMeters = 30,
-                ResolutionArcSeconds = 1,
-                PointsPerDegree = 3600,
-                NoDataValue = -9999,
-                Attribution = new Attribution(ATTRIBUTION_SUBJECT, "ASTER_GDEMV3",
-                                                "https://doi.org/10.5067/ASTER/ASTGTM.003",
-                                                "NASA/METI/AIST/Japan Spacesystems, and U.S./Japan ASTER Science Team. ASTER Global Digital Elevation Model V003. 2018, distributed by NASA EOSDIS Land Processes DAAC")
-            });
+            //datasets.Add("IGN_5m", new DEMDataSet()
+            //{
+            //    Name = nameof(IGN_5m),
+            //    Description = "IGN RGE Alti 5 meter",
+            //    PublicUrl = "https://ign.fr",
+            //    DataSource = new LocalFileSystem(localDirectory: Path.Combine("Data", "IGN_5m")),
+            //    FileFormat = new DEMFileDefinition("Esri Ascii Grid", DEMFileType.ASCIIGrid, ".asc", DEMFileRegistrationMode.Cell),
+            //    ResolutionMeters = 5,
+            //    PointsPerDegree = 21600,
+            //    NoDataValue = -99999,
+            //    SRID = 2154,
+            //    Attribution = new Attribution(ATTRIBUTION_SUBJECT, "IGN", "https://ign.fr"
+            //        , "TO BE DEFINED")
+            //});
+            //datasets.Add("IGN_1m", new DEMDataSet()
+            //{
+            //    Name = nameof(IGN_1m),
+            //    Description = "IGN RGE Alti 1 meter",
+            //    PublicUrl = "https://ign.fr",
+            //    DataSource = new LocalFileSystem(localDirectory: Path.Combine("Data", "IGN_1m")),
+            //    FileFormat = new DEMFileDefinition("Esri Ascii Grid", DEMFileType.ASCIIGrid, ".asc", DEMFileRegistrationMode.Cell),
+            //    ResolutionMeters = 1,
+            //    PointsPerDegree = 108000,
+            //    NoDataValue = -99999,
+            //    SRID = 2154,
+            //    Attribution = new Attribution(ATTRIBUTION_SUBJECT, "IGN", "https://ign.fr"
+            //        , "TO BE DEFINED")
+            //});
+            //datasets.Add("ASTER_GDEMV3", new DEMDataSet()
+            //{
+            //    Name = nameof(ASTER_GDEMV3),
+            //    Description = "ASTER Global Digital Elevation Model 1 arc second (30m)",
+            //    PublicUrl = "https://lpdaac.usgs.gov/products/astgtmv003",
+            //    DataSource = new NasaGranuleDataSource(indexFilePath: "ASTGTM.003.json", collectionId: "C1575726572-LPDAAC_ECS"),
+            //    FileFormat = new DEMFileDefinition("GeoTiff file", DEMFileType.GEOTIFF, "_dem.tif", DEMFileRegistrationMode.Grid),
+            //    ResolutionMeters = 30,
+            //    ResolutionArcSeconds = 1,
+            //    PointsPerDegree = 3600,
+            //    NoDataValue = -9999,
+            //    Attribution = new Attribution(ATTRIBUTION_SUBJECT, "ASTER_GDEMV3",
+            //                                    "https://doi.org/10.5067/ASTER/ASTGTM.003",
+            //                                    "NASA/METI/AIST/Japan Spacesystems, and U.S./Japan ASTER Science Team. ASTER Global Digital Elevation Model V003. 2018, distributed by NASA EOSDIS Land Processes DAAC")
+            //});
             datasets.Add("NASADEM", new DEMDataSet()
             {
                 Name = nameof(NASADEM),
@@ -185,7 +198,7 @@ namespace DEM.Net.Core
             datasets.Add("GEBCO_2019", new DEMDataSet()
             {
                 Name = nameof(GEBCO_2019),
-                Description = "GEBCO’s gridded bathymetric data set, a global terrain model for ocean and land at 15 arc-second intervals",
+                Description = "400m with bathymetry",
                 PublicUrl = "https://www.gebco.net/data_and_products/gridded_bathymetry_data/gebco_2019/gebco_2019_info.html",
                 DataSource = new LocalFileSystem(localDirectory: Path.Combine("Data", "GEBCO_2019")),
                 FileFormat = new DEMFileDefinition("netCDF file", DEMFileType.CF_NetCDF, ".nc", DEMFileRegistrationMode.Cell),
@@ -197,21 +210,21 @@ namespace DEM.Net.Core
                                                 "https://www.gebco.net/data_and_products/gridded_bathymetry_data/gebco_2019/gebco_2019_info.html",
                                                 "GEBCO Compilation Group (2019) GEBCO 2019 Grid (doi:10.5285/836f016a-33be-6ddc-e053-6c86abc0788e)")
             });
-            datasets.Add("GEBCO_2020", new DEMDataSet()
-            {
-                Name = nameof(GEBCO_2020),
-                Description = "GEBCO’s gridded bathymetric data set, a global terrain model for ocean and land at 15 arc-second intervals",
-                PublicUrl = "https://www.gebco.net/data_and_products/gridded_bathymetry_data/gebco_2020/",
-                DataSource = new LocalFileSystem(localDirectory: "GEBCO_2020"),
-                FileFormat = new DEMFileDefinition("GeoTiff file", DEMFileType.GEOTIFF, ".tif", DEMFileRegistrationMode.Grid),
-                ResolutionMeters = 464,
-                ResolutionArcSeconds = 15,
-                PointsPerDegree = 240,
-                NoDataValue = -9999,
-                Attribution = new Attribution(ATTRIBUTION_SUBJECT, "GEBCO Compilation Group (2020) GEBCO 2020 Grid (doi:10.5285/a29c5465-b138-234d-e053-6c86abc040b9)",
-                                                 "https://www.gebco.net/data_and_products/gridded_bathymetry_data/gebco_2020/",
-                                                 "GEBCO Compilation Group (2020) GEBCO 2020 Grid (doi:10.5285/a29c5465-b138-234d-e053-6c86abc040b9)")
-            });
+            //datasets.Add("GEBCO_2020", new DEMDataSet()
+            //{
+            //    Name = nameof(GEBCO_2020),
+            //    Description = "GEBCO’s gridded bathymetric data set, a global terrain model for ocean and land at 15 arc-second intervals",
+            //    PublicUrl = "https://www.gebco.net/data_and_products/gridded_bathymetry_data/gebco_2020/",
+            //    DataSource = new LocalFileSystem(localDirectory: "GEBCO_2020"),
+            //    FileFormat = new DEMFileDefinition("GeoTiff file", DEMFileType.GEOTIFF, ".tif", DEMFileRegistrationMode.Grid),
+            //    ResolutionMeters = 464,
+            //    ResolutionArcSeconds = 15,
+            //    PointsPerDegree = 240,
+            //    NoDataValue = -9999,
+            //    Attribution = new Attribution(ATTRIBUTION_SUBJECT, "GEBCO Compilation Group (2020) GEBCO 2020 Grid (doi:10.5285/a29c5465-b138-234d-e053-6c86abc040b9)",
+            //                                     "https://www.gebco.net/data_and_products/gridded_bathymetry_data/gebco_2020/",
+            //                                     "GEBCO Compilation Group (2020) GEBCO 2020 Grid (doi:10.5285/a29c5465-b138-234d-e053-6c86abc040b9)")
+            //});
 
             return datasets;
         }
@@ -224,11 +237,6 @@ namespace DEM.Net.Core
         /// Shuttle Radar Topography Mission (SRTM GL3) Global 90m
         /// </summary>
         public static DEMDataSet SRTM_GL3 => Datasets.Value[nameof(SRTM_GL3)];
-
-        /// <summary>
-        /// Shuttle Radar Topography Mission (SRTM GL1) Global 30m
-        /// </summary>
-        public static DEMDataSet SRTM_GL1 => Datasets.Value[nameof(SRTM_GL1)];
 
         /// <summary>
         /// ALOS World 3D - 30m
@@ -245,12 +253,6 @@ namespace DEM.Net.Core
         /// </summary>
         public static DEMDataSet GEBCO_2019 => Datasets.Value[nameof(GEBCO_2019)];
         public static DEMDataSet GEBCO_2020 => Datasets.Value[nameof(GEBCO_2020)];
-
-        /// <summary>
-        /// ASTER GDEM V3 https://cmr.earthdata.nasa.gov/search/concepts/C1575726572-LPDAAC_ECS/11
-        /// API: https://cmr.earthdata.nasa.gov/search/site/docs/search/api.html
-        /// </summary>
-        public static DEMDataSet ASTER_GDEMV3 => Datasets.Value[nameof(ASTER_GDEMV3)];
 
         /// <summary>
         /// NASADEM https://cmr.earthdata.nasa.gov/search/concepts/C1546314043-LPDAAC_ECS

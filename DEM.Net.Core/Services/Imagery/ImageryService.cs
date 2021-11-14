@@ -242,7 +242,7 @@ namespace DEM.Net.Core.Imagery
         }
 
         public TextureInfo ConstructTexture(TileRange tiles, BoundingBox bbox, string fileName,
-            TextureImageFormat mimeType)
+            TextureImageFormat mimeType, float quality = 0.98f)
         {
             // where is the bbox in the final image ?
 
@@ -269,6 +269,11 @@ namespace DEM.Net.Core.Imagery
                         if (x >= projectedBbox.Width || y >= projectedBbox.Height)
                             continue;
 
+                        if (tile.Image.Length == 0)
+                        {
+                            _logger.LogWarning($"Tile {tile.Uri} is empty. Skipping.");
+                            continue;
+                        }
                         using (Image<Rgba32> tileImg = Image.Load(tile.Image))
                         {
                             outputImage.Mutate(o => o
@@ -287,25 +292,42 @@ namespace DEM.Net.Core.Imagery
                 //IImageEncoder encoder = ConvertFormat(mimeType);
                 //outputImage.Save(fileName, encoder);
 
-                SaveImage(outputImage, fileName);
+                // Make image power of two dimensions
+                if (options.PowerOfTwoImages)
+                {
+                    int nearestPowerOf2 = ToNextNearestPowerOf2(Math.Max(outputImage.Width, outputImage.Height));
+                    outputImage.Mutate(o => o.Resize(nearestPowerOf2, nearestPowerOf2));
+                }
+
+                SaveImage(outputImage, fileName, quality);
             }
 
             return new TextureInfo(fileName, mimeType, (int)Math.Ceiling(projectedBbox.Width), (int)Math.Ceiling(projectedBbox.Height), zoomLevel,
                 projectedBbox, tiles.Count);
         }
-
-        private void SaveImage(Image outputImage, string fileName)
+        int ToNextNearestPowerOf2(int x)
         {
-            IImageEncoder imageEncoder = GetEncoder(fileName);
+            if (x < 0) { return 0; }
+            --x;
+            x |= x >> 1;
+            x |= x >> 2;
+            x |= x >> 4;
+            x |= x >> 8;
+            x |= x >> 16;
+            return x + 1;
+        }
+        private void SaveImage(Image outputImage, string fileName, float quality = 0.98f)
+        {
+            IImageEncoder imageEncoder = GetEncoder(fileName, quality);
 
             outputImage.Save(fileName, imageEncoder);
         }
 
-        private IImageEncoder GetEncoder(string fileName)
+        private IImageEncoder GetEncoder(string fileName, float quality = 0.98f)
         {
             var fileExtension = System.IO.Path.GetExtension(fileName).ToLower();
             if (fileExtension.EndsWith("jpg"))
-                return new JpegEncoder { Quality = 98, Subsample = JpegSubsample.Ratio444 };
+                return new JpegEncoder { Quality = (int)(quality * 100F), Subsample = JpegSubsample.Ratio444 };
             else if (fileExtension.EndsWith("png"))
                 return new PngEncoder();
             else return null;
